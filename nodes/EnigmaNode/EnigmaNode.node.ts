@@ -60,18 +60,6 @@ export class EnigmaNode implements INodeType {
 				],
 			},
 			{
-				displayName: 'Message',
-				name: 'message',
-				type: 'string',
-				default: '',
-				placeholder: 'text to encrypt/decrypt',
-				description: 'The message to encrypt or decrypt',
-				required: true,
-				typeOptions: {
-					rows: 8,
-				},
-			},
-			{
 				displayName: 'Algorithm',
 				name: 'hash_algorithm',
 				type: 'options',
@@ -127,6 +115,24 @@ export class EnigmaNode implements INodeType {
 						],
 					},
 				},				
+			},
+			{
+				displayName: 'Message',
+				name: 'hash_message',
+				type: 'string',
+				default: '',
+				placeholder: 'text to encrypt/decrypt',
+				description: 'The message to encrypt or decrypt',
+				typeOptions: {
+					rows: 8,
+				},
+				displayOptions: {
+					show: {
+						cryptographic_utilities: [
+							'HASH',
+						],
+					},
+				},	
 			},
 			{
 				displayName: 'Encrypt/Decrypt/Key Generation',
@@ -199,6 +205,28 @@ export class EnigmaNode implements INodeType {
 				},				
 			},
 			{
+				displayName: 'Message',
+				name: 'aes_message',
+				type: 'string',
+				default: '',
+				placeholder: 'text to encrypt/decrypt',
+				description: 'The message to encrypt or decrypt',
+				typeOptions: {
+					rows: 8,
+				},
+				displayOptions: {
+					show: {
+						cryptographic_utilities: [
+							'AES_256',
+						],
+						aes_operation: [
+							'encrypt',
+							'decrypt',
+						],
+					},
+				},	
+			},
+			{
 				displayName: 'Encrypt/Decrypt/Key Generation',
 				name: 'rsa_operation',
 				type: 'options',
@@ -268,6 +296,28 @@ export class EnigmaNode implements INodeType {
 						],
 					},
 				},				
+			},
+			{
+				displayName: 'Message',
+				name: 'rsa_message',
+				type: 'string',
+				default: '',
+				placeholder: 'text to encrypt/decrypt',
+				description: 'The message to encrypt or decrypt',
+				typeOptions: {
+					rows: 8,
+				},
+				displayOptions: {
+					show: {
+						cryptographic_utilities: [
+							'RSA',
+						],
+						rsa_operation: [
+							'encrypt',
+							'decrypt',
+						],
+					},
+				},	
 			},
 			{
 				displayName: 'Sign/Verify/Key Generation',
@@ -356,6 +406,28 @@ export class EnigmaNode implements INodeType {
 					},
 				},				
 			},
+			{
+				displayName: 'Message',
+				name: 'ecc_message',
+				type: 'string',
+				default: '',
+				placeholder: 'text to encrypt/decrypt',
+				description: 'The message to encrypt or decrypt',
+				typeOptions: {
+					rows: 8,
+				},
+				displayOptions: {
+					show: {
+						cryptographic_utilities: [
+							'ECC',
+						],
+						ecc_operation: [
+							'sign',
+							'verify',
+						],
+					},
+				},	
+			},
 		],
 	};
 
@@ -369,8 +441,10 @@ export class EnigmaNode implements INodeType {
 			try 
 			{
 				item = items[itemIndex];
+				// let binaryDataBufferItem = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
+
+
 				let cryptographic_utilities = this.getNodeParameter('cryptographic_utilities', itemIndex, '') as string;
-				let message = this.getNodeParameter('message', itemIndex, '') as string;
 				
 				switch(cryptographic_utilities)
 				{
@@ -380,17 +454,17 @@ export class EnigmaNode implements INodeType {
 						let aes_operation = this.getNodeParameter('aes_operation', itemIndex, '') as string;
 						let aes_key = this.getNodeParameter('aes_key', itemIndex, '') as string;
 						let aes_256_iv = this.getNodeParameter('aes_256_iv', itemIndex, '') as string;
-						
+						let aes_message = this.getNodeParameter('aes_message', itemIndex, '') as string;
 						switch(aes_operation)
 						{
 							case 'key_generation':
 								await aes_keygen(item)
 								break;
 							case 'encrypt':
-								await aes_encrypt(item, aes_key, aes_256_iv, message)
+								await aes_encrypt(item, aes_key, aes_256_iv, aes_message)
 								break;
 							case 'decrypt':
-								await aes_decrypt(item, aes_key, message, ivSize, tagSize)
+								await aes_decrypt(item, aes_key, aes_message, ivSize, tagSize)
 								break;
 						}
 					case 'ECC':
@@ -398,6 +472,7 @@ export class EnigmaNode implements INodeType {
 						let ecc_public_key = this.getNodeParameter('ecc_public_key', itemIndex, '') as string;
 						let ecc_private_key = this.getNodeParameter('ecc_private_key', itemIndex, '') as string;
 						let ecc_signature = this.getNodeParameter('ecc_signature', itemIndex, '') as string;
+						let ecc_message = this.getNodeParameter('ecc_message', itemIndex, '') as string;
 
 						switch(ecc_operation)
 						{
@@ -405,10 +480,10 @@ export class EnigmaNode implements INodeType {
 								await ecc_keygen(item)
 								break;
 							case 'sign':
-								await ecc_sign(item, ecc_public_key, ecc_private_key, message)
+								await ecc_sign(item, ecc_public_key, ecc_private_key, ecc_message)
 								break;
 							case 'verify':
-								await ecc_verify(item, ecc_public_key, message, ecc_signature)
+								await ecc_verify(item, ecc_public_key, ecc_message, ecc_signature)
 								break;
 						}
 						break;
@@ -420,6 +495,7 @@ export class EnigmaNode implements INodeType {
 						let rsa_operation = this.getNodeParameter('rsa_operation', itemIndex, '') as string;
 						let ras_public_key = this.getNodeParameter('rsa_public_key', itemIndex, '') as string;
 						let ras_private_key = this.getNodeParameter('rsa_private_key', itemIndex, '') as string;
+						let rsa_message = this.getNodeParameter('rsa_message', itemIndex, '') as string;
 
 						switch(rsa_operation)
 						{
@@ -427,16 +503,18 @@ export class EnigmaNode implements INodeType {
 								await rsa_keygen(item)
 								break;
 							case 'encrypt':
-								await ras_encrypt(item, ras_public_key, ras_private_key, message)
+								await ras_encrypt(item, ras_public_key, ras_private_key, rsa_message)
 								break;
 							case 'decrypt':
-								await ras_decrypt(item, ras_public_key, ras_private_key, message)
+								await ras_decrypt(item, ras_public_key, ras_private_key, rsa_message)
 								break;
 						}
 						break;
 					case 'HASH':
 						let algorithm = this.getNodeParameter('hash_algorithm', itemIndex, '') as Enigma.Hash.Algorithm;
 						let encoding = this.getNodeParameter('hash_encoding', itemIndex, '') as Enigma.Hash.Encoding;
+						let message = this.getNodeParameter('rsa_message', itemIndex, '') as string;
+
 						
 						item.json.hash = await Enigma.Hash.digest(message, { algorithm, encoding })
 						break;
