@@ -1,9 +1,18 @@
 {
   "name": "n8n-nodes-enigma",
   "version": "0.1.0",
-  "description": "n8n node to encrypt and decrypt text using encryption algorithms",
+  "description": "An n8n community node that integrates the Enigma encryption library by Cubbit, enabling seamless encryption and decryption within n8n workflows using modern algorithms.",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n",
+    "n8n-node",
+    "encryption",
+    "decryption",
+    "cryptography",
+    "enigma",
+    "cubbit",
+    "n8n-community-node-package",
+    "secure-data",
+    "workflow-security"
   ],
   "license": "MIT",
   "homepage": "",

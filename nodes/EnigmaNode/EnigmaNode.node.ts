@@ -433,7 +433,7 @@ export class EnigmaNode implements INodeType {
 				displayName: 'Size',
 				name: 'string_size',
 				type: 'number',
-				default: '',
+				default: 32,
 				placeholder: '32',
 				description: 'The byte size of the random string',
 				typeOptions: {
