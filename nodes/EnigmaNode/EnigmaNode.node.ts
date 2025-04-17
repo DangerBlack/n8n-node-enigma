@@ -484,12 +484,14 @@ export class EnigmaNode implements INodeType {
 	{
 		const items = this.getInputData();
 		let item: INodeExecutionData;
+		let outputs : INodeExecutionData[] = [];
 
 		for(let itemIndex = 0; itemIndex < items.length; itemIndex++) 
 		{
 			try 
 			{
-				item = items[itemIndex];
+				outputs.push({json: {}});
+				item = outputs[itemIndex];
 
 				let cryptographic_utilities = this.getNodeParameter('cryptographic_utilities', itemIndex, '') as string;
 				
@@ -589,14 +591,14 @@ export class EnigmaNode implements INodeType {
 				// to handle errors.
 				if(this.continueOnFail()) 
 				{
-					items.push({
+					outputs[itemIndex] = {
 						json: {
 							error: (error as Error).message || 'Unknown error',
 						},
 						pairedItem: {
 							item: itemIndex,
 						},
-					});
+					};
 				} 
 				else 
 				{
@@ -606,6 +608,7 @@ export class EnigmaNode implements INodeType {
 						// If the error thrown already contains the context property,
 						// only append the itemIndex
 						error.context.itemIndex = itemIndex;
+						error.message = error.message || 'Unknown error';
 						throw error;
 					}
 
@@ -617,7 +620,7 @@ export class EnigmaNode implements INodeType {
 			}
 		}
 
-		return this.prepareOutputData(items);
+		return this.prepareOutputData(outputs);
 	}
 }
 
