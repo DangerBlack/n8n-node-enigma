@@ -223,6 +223,7 @@ export class EnigmaNode implements INodeType {
 							'encrypt',
 							'decrypt',
 						],
+						use_binary:	[false]
 					},
 				},	
 			},
@@ -447,6 +448,35 @@ export class EnigmaNode implements INodeType {
 					},
 				},	
 			},
+			{
+				displayName: 'Use Binary File',
+				name: 'use_binary',
+				type: 'boolean',
+				default: false,
+				description: 'Whether process a binary file instead of text',
+				displayOptions: {
+					show: {
+						cryptographic_utilities: ['AES_256'], // adjust based on your context
+					},
+				},
+			},
+			{
+				displayName: 'Binary Property Name',
+				name: 'binary_property_name',
+				type: 'string',
+				default: 'data',
+				description: 'Name of the binary property to use (usually "data")',
+				displayOptions: {
+					show: {
+						cryptographic_utilities: ['AES_256'],
+						aes_operation: [
+							'encrypt',
+							'decrypt',
+						],
+						use_binary: [true],
+					},
+				},
+			},
 		],
 	};
 
@@ -460,8 +490,6 @@ export class EnigmaNode implements INodeType {
 			try 
 			{
 				item = items[itemIndex];
-				// let binaryDataBufferItem = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
-
 
 				let cryptographic_utilities = this.getNodeParameter('cryptographic_utilities', itemIndex, '') as string;
 				
@@ -473,17 +501,31 @@ export class EnigmaNode implements INodeType {
 						let aes_operation = this.getNodeParameter('aes_operation', itemIndex, '') as string;
 						let aes_key = this.getNodeParameter('aes_key', itemIndex, '') as string;
 						let aes_256_iv = this.getNodeParameter('aes_256_iv', itemIndex, '') as string;
-						let aes_message = this.getNodeParameter('aes_message', itemIndex, '') as string;
+
+						const use_binary = this.getNodeParameter('use_binary', itemIndex) as boolean;
+						let binaryData: Buffer | undefined;
+						let aes_message: string | Buffer = '';
+						if(use_binary)
+						{
+							const binaryPropertyName = this.getNodeParameter('binary_property_name', itemIndex) as string;
+							binaryData = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
+						}
+						else
+							aes_message = this.getNodeParameter('aes_message', itemIndex, '') as string;
+
+						if(use_binary && binaryData)
+							aes_message = binaryData;
+
 						switch(aes_operation)
 						{
 							case 'key_generation':
 								await aes_keygen(item)
 								break;
 							case 'encrypt':
-								await aes_encrypt(item, aes_key, aes_256_iv, aes_message)
+								await aes_encrypt(this, item, aes_key, aes_256_iv, aes_message, use_binary)
 								break;
 							case 'decrypt':
-								await aes_decrypt(item, aes_key, aes_message, ivSize, tagSize)
+								await aes_decrypt(this, item, aes_key, aes_message, ivSize, tagSize, use_binary)
 								break;
 						}
 						break;
@@ -586,7 +628,7 @@ async function aes_keygen(item: INodeExecutionData)
 	item.json.key = aes.key.toString('base64');
 }
 
-async function aes_encrypt(item: INodeExecutionData, aes_key: string, aes_256_iv: string, message: string)
+async function aes_encrypt(self: IExecuteFunctions, item: INodeExecutionData, aes_key: string, aes_256_iv: string, message: string | Buffer, isBinary: boolean = false)
 {
 	const enigma = new Enigma.AES();
 	const options: Enigma.AES.Options = {};
@@ -612,12 +654,22 @@ async function aes_encrypt(item: INodeExecutionData, aes_key: string, aes_256_iv
 		result = await aes.encrypt(message, Buffer.from(aes_256_iv, 'base64'));
 
 	item.json.key = aes.key.toString('base64');
-	item.json.encrypted = Buffer.concat([result.content, result.iv, result.tag || Buffer.alloc(0)]).toString('base64');
+	const encrypted = Buffer.concat([result.content, result.iv, result.tag || Buffer.alloc(0)]);
+	if(!isBinary)
+		item.json.encrypted = encrypted.toString('base64');
+	else
+	item.binary = {
+		data: await self.helpers.prepareBinaryData(
+			encrypted,
+			'decrypted_file.dat',
+			'application/octet-stream'
+		)
+	};
 }
 
-async function aes_decrypt(item: INodeExecutionData, aes_key: string, message: string, ivSize: number, tagSize: number)
+async function aes_decrypt(self: IExecuteFunctions, item: INodeExecutionData, aes_key: string, message: string | Buffer, ivSize: number, tagSize: number, isBinary: boolean = false)
 {
-	const encrypted_buffer = Buffer.from(message, 'base64');
+	const encrypted_buffer = Buffer.from(message as string, 'base64');
 	const contentSize = encrypted_buffer.length - (ivSize + tagSize);
 	const content = encrypted_buffer.subarray(0, contentSize);
 	const iv = encrypted_buffer.subarray(contentSize, contentSize + ivSize);
@@ -635,8 +687,18 @@ async function aes_decrypt(item: INodeExecutionData, aes_key: string, message: s
 	} 
 
 	const aes = await enigma.init(options);
-	const result = await aes.decrypt({ content, iv, tag });
-	item.json.decrypted = result.toString();
+	const decrypt = await aes.decrypt({ content, iv, tag });
+
+	if(!isBinary)
+		item.json.encrypted = decrypt.toString();
+	else
+	item.binary = {
+		data: await self.helpers.prepareBinaryData(
+			decrypt,
+			'decrypted_file.dat',
+			'application/octet-stream'
+		)
+	};
 }
 
 async function rsa_keygen(item: INodeExecutionData)
