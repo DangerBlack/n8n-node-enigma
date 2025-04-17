@@ -428,6 +428,25 @@ export class EnigmaNode implements INodeType {
 					},
 				},	
 			},
+			{
+				displayName: 'Size',
+				name: 'string_size',
+				type: 'number',
+				default: '',
+				placeholder: '32',
+				description: 'The byte size of the random string',
+				typeOptions: {
+					minValue: 1,
+					maxValue: 4096,
+				},
+				displayOptions: {
+					show: {
+						cryptographic_utilities: [
+							'RANDOM',
+						],
+					},
+				},	
+			},
 		],
 	};
 
@@ -467,6 +486,7 @@ export class EnigmaNode implements INodeType {
 								await aes_decrypt(item, aes_key, aes_message, ivSize, tagSize)
 								break;
 						}
+						break;
 					case 'ECC':
 						let ecc_operation = this.getNodeParameter('ecc_operation', itemIndex, '') as string;
 						let ecc_public_key = this.getNodeParameter('ecc_public_key', itemIndex, '') as string;
@@ -488,13 +508,14 @@ export class EnigmaNode implements INodeType {
 						}
 						break;
 					case 'RANDOM':
-						// const enigma = new Enigma();
-						// item.json.result = enigma.encrypt(this.getNodeParameter('query', itemIndex, '') as string);
-						break;
+						const size = this.getNodeParameter('string_size', itemIndex, 32) as number;
+						const random = Enigma.Random.bytes(size);
+						item.json.random = random.toString('base64');
+    					break;
 					case 'RSA':
 						let rsa_operation = this.getNodeParameter('rsa_operation', itemIndex, '') as string;
-						let ras_public_key = this.getNodeParameter('rsa_public_key', itemIndex, '') as string;
-						let ras_private_key = this.getNodeParameter('rsa_private_key', itemIndex, '') as string;
+						let rsa_public_key = this.getNodeParameter('rsa_public_key', itemIndex, '') as string;
+						let rsa_private_key = this.getNodeParameter('rsa_private_key', itemIndex, '') as string;
 						let rsa_message = this.getNodeParameter('rsa_message', itemIndex, '') as string;
 
 						switch(rsa_operation)
@@ -503,17 +524,17 @@ export class EnigmaNode implements INodeType {
 								await rsa_keygen(item)
 								break;
 							case 'encrypt':
-								await ras_encrypt(item, ras_public_key, ras_private_key, rsa_message)
+								await ras_encrypt(item, rsa_public_key, rsa_private_key, rsa_message)
 								break;
 							case 'decrypt':
-								await ras_decrypt(item, ras_public_key, ras_private_key, rsa_message)
+								await ras_decrypt(item, rsa_public_key, rsa_private_key, rsa_message)
 								break;
 						}
 						break;
 					case 'HASH':
 						let algorithm = this.getNodeParameter('hash_algorithm', itemIndex, '') as Enigma.Hash.Algorithm;
 						let encoding = this.getNodeParameter('hash_encoding', itemIndex, '') as Enigma.Hash.Encoding;
-						let message = this.getNodeParameter('rsa_message', itemIndex, '') as string;
+						let message = this.getNodeParameter('hash_message', itemIndex, '') as string;
 
 						
 						item.json.hash = await Enigma.Hash.digest(message, { algorithm, encoding })
@@ -526,7 +547,14 @@ export class EnigmaNode implements INodeType {
 				// to handle errors.
 				if(this.continueOnFail()) 
 				{
-					items.push({ json: this.getInputData(itemIndex)[0].json, error, pairedItem: itemIndex });
+					items.push({
+						json: {
+							error: (error as Error).message || 'Unknown error',
+						},
+						pairedItem: {
+							item: itemIndex,
+						},
+					});
 				} 
 				else 
 				{
@@ -541,6 +569,7 @@ export class EnigmaNode implements INodeType {
 
 					throw new NodeOperationError(this.getNode(), error, {
 						itemIndex,
+						message: error.message,
 					});
 				}
 			}
