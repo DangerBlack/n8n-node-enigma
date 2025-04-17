@@ -3,6 +3,7 @@ import {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	NodeConnectionType,
 	NodeOperationError,
 } from 'n8n-workflow';
 import Enigma from '@cubbit/enigma';
@@ -19,8 +20,8 @@ export class EnigmaNode implements INodeType {
 		defaults: {
 			name: 'Enigma',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionType.Main] as NodeConnectionType[],
+		outputs: [NodeConnectionType.Main] as NodeConnectionType[],
 		properties: [
 			// Node properties which the user gets displayed and
 			// can change on the node.
