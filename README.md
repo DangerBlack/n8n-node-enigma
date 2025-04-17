@@ -1,46 +1,94 @@
 ![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
 
-# n8n-nodes-starter
+# n8n-nodes-enigma
 
-This repo contains example nodes to help you get started building your own custom integrations for [n8n](n8n.io). It includes the node linter and other dependencies.
+**Encrypt and decrypt text securely in your n8n workflows using the [Enigma](https://www.npmjs.com/package/@cubbit/enigma) cryptographic library by Cubbit.**
 
-To make your custom node available to the community, you must create it as an npm package, and [submit it to the npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+This custom node for [n8n](https://n8n.io) adds support for seamless encryption and decryption operations using modern cryptographic algorithms. It's ideal for protecting sensitive data as it flows through your automated workflows.
 
-## Prerequisites
+---
 
-You need the following installed on your development machine:
+## ✨ Features
 
-* [git](https://git-scm.com/downloads)
-* Node.js and pnpm. Minimum version Node 18. You can find instructions on how to install both using nvm (Node Version Manager) for Linux, Mac, and WSL [here](https://github.com/nvm-sh/nvm). For Windows users, refer to Microsoft's guide to [Install NodeJS on Windows](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows).
-* Install n8n with:
-  ```
-  pnpm install n8n -g
-  ```
-* Recommended: follow n8n's guide to [set up your development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/).
+- 🔐 **Encrypt** any text input using secure encryption algorithms
+- 🔓 **Decrypt** encrypted values back into readable data
+- 🧠 Built on top of the trusted [`@cubbit/enigma`](https://www.npmjs.com/package/@cubbit/enigma) library
+- ⚙️ Customizable inputs: define keys, IVs, modes, and more
+- 🔁 Supports both binary and string-based operations
+- 🧩 Easy integration with any n8n workflow
 
-## Using this starter
+---
 
-These are the basic steps for working with the starter. For detailed guidance on creating and publishing nodes, refer to the [documentation](https://docs.n8n.io/integrations/creating-nodes/).
+## 🚀 Getting Started
 
-1. [Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template repository.
-2. Clone your new repo:
+### Prerequisites
+
+Make sure the following are installed on your machine:
+
+- [Git](https://git-scm.com/downloads)
+- Node.js `>=18.10` and [pnpm](https://pnpm.io/) `>=9.1`
+- n8n (install with: `pnpm install -g n8n`)
+
+> 🧑‍💻 Recommended: [Set up your n8n development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/) before you begin.
+
+---
+
+## 🛠️ Installation & Development
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/DangerBlack/n8n-node-enigma.git
+   cd n8n-node-enigma
    ```
-   git clone https://github.com/<your organization>/<your-repo-name>.git
+
+2. Install dependencies:
+   ```bash
+   pnpm install
    ```
-3. Run `pnpm i` to install dependencies.
-4. Open the project in your editor.
-5. Browse the examples in `/nodes` and `/credentials`. Modify the examples, or replace them with your own nodes.
-6. Update the `package.json` to match your details.
-7. Run `pnpm lint` to check for errors or `pnpm lintfix` to automatically fix errors when possible.
-8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
-9. Replace this README with documentation for your node. Use the [README_TEMPLATE](README_TEMPLATE.md) to get started.
-10. Update the LICENSE file to use your details.
-11. [Publish](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry) your package to npm.
 
-## More information
+3. Build the project:
+   ```bash
+   pnpm build
+   ```
 
-Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
+4. Open n8n and load the custom node to test it in your workflow.
 
-## License
+---
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+## Example
+
+### Workflow
+
+![Global workflow](images/global.png)
+
+### AES256 Encrypt
+
+![AES256 Encrypt](images/aes256_encrypt.png)
+
+### RSA Encrypt
+
+![RSA Encrypt](images/rsa_encrypt.png)
+
+---
+
+## 📦 Publishing
+
+To publish this node as an npm package:
+
+- Update `package.json` with your metadata.
+- Run `pnpm build && pnpm lint`.
+- Follow [npm's guide to publishing](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+
+---
+
+## 📚 Resources
+
+- [n8n Docs – Creating Nodes](https://docs.n8n.io/integrations/creating-nodes/)
+- [Enigma by Cubbit – npm page](https://www.npmjs.com/package/@cubbit/enigma)
+- [n8n Forum](https://community.n8n.io/)
+
+---
+
+## 🪪 License
+
+MIT © [DangerBlack](https://github.com/DangerBlack)
